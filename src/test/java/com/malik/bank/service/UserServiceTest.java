@@ -11,17 +11,17 @@ import static org.mockito.Mockito.mock;
 
 class UserServiceTest {
 
-    private final UserRepository repository = mock(UserRepository.class);
-    private final PasswordEncoder encoder = mock(PasswordEncoder.class);
+    private final UserRepository userRepository = mock(UserRepository.class);
+    private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
 
-    private final UserService service = new UserService(repository, encoder);
+    private final UserService userService = new UserService(userRepository, passwordEncoder);
 
     @Test
     void shouldAddAdminToDb() {
         // when
-        service.addAdminToDb();
+        userService.addAdminToDb();
 
         // then
-        then(repository).should().save(any(User.class));
+        then(userRepository).should().save(any(User.class));
     }
 }

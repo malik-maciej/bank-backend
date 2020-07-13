@@ -18,8 +18,8 @@ import static org.mockito.Mockito.mock;
 
 class UserDetailsServiceImplTest {
 
-    private final UserRepository repository = mock(UserRepository.class);
-    private final UserDetailsService service = new UserDetailsServiceImpl(repository);
+    private final UserRepository userRepository = mock(UserRepository.class);
+    private final UserDetailsService userDetailsService = new UserDetailsServiceImpl(userRepository);
     private final String username = "username";
 
     @Test
@@ -34,24 +34,21 @@ class UserDetailsServiceImplTest {
         newUser.setRole(UserRole.ADMIN.toString());
         newUser.setContact(new Contact());
 
-        given(repository.findByUsername(username)).willReturn(Optional.of(newUser));
+        given(userRepository.findByUsername(username)).willReturn(Optional.of(newUser));
 
-        // when
-        UserDetails user = service.loadUserByUsername(username);
-
-        // then
-        assertEquals(newUser, user);
+        // when + then
+        assertEquals(newUser, userDetailsService.loadUserByUsername(username));
     }
 
     @Test
     void shouldThrowExceptionWhenUserIsNotInDb() {
         // given
-        given(repository.findByUsername(username)).willReturn(empty());
+        given(userRepository.findByUsername(username)).willReturn(empty());
 
         // when + then
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
-                () -> service.loadUserByUsername(username));
+                () -> userDetailsService.loadUserByUsername(username));
 
         assertEquals("Invalid username", exception.getMessage());
     }

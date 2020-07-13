@@ -9,7 +9,11 @@ class ContactTest {
     @Test
     void shouldReturnUpdatedContact() {
         // given
+        User user = new User();
+        user.setName("David");
+
         Contact contact = new Contact();
+        contact.setUser(user);
         contact.setAddress(new Address());
         contact.setEmail("contact@bank.com");
         contact.setPhoneNumber("48111222333");
@@ -37,6 +41,7 @@ class ContactTest {
                 () -> assertNotNull(updatedContact.getAddress()),
                 () -> assertEquals(address.getCity(), updatedContact.getAddress().getCity()),
                 () -> assertEquals(address.getCountry(), updatedContact.getAddress().getCountry()),
-                () -> assertTrue(updatedContact.getAddress().toString().contains("city='City'")));
+                () -> assertTrue(updatedContact.getAddress().toString().contains("city='City'")),
+                () -> assertEquals(contact.getUser().getName(), user.getName()));
     }
 }
