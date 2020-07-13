@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AccountTest {
 
@@ -23,6 +24,7 @@ class AccountTest {
 
         // then
         assertEquals(150, account.getBalance().intValue());
+        assertTrue(account.toString().contains("balance=150"));
     }
 
     @Test
