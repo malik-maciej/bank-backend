@@ -17,22 +17,22 @@ public class UserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
-    private UserRepository userRepository;
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
-    UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
+    UserService(UserRepository repository, PasswordEncoder passwordEncoder) {
+        this.repository = repository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void addAdminToDb() {
-        if (userRepository.findByUsername("admin").isPresent()) {
+        if (repository.findByUsername("admin").isPresent()) {
             return;
         }
 
         User user = getUser();
-        userRepository.save(user);
+        repository.save(user);
 
         LOGGER.info("Created user - " + user.getUsername());
     }
@@ -43,6 +43,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(("password")));
         user.setName("Name");
         user.setSurname("Surname");
+        user.setIdNumber("ABC123456");
         user.setRole(UserRole.ADMIN.toString());
         user.setContact(getContact(user));
         return user;
@@ -51,6 +52,7 @@ public class UserService {
     private Contact getContact(User user) {
         Contact contact = new Contact();
         contact.setEmail("admin@bank.com");
+        contact.setPhoneNumber("48666333999");
         contact.setAddress(getAddress());
         contact.setUser(user);
         return contact;

@@ -13,15 +13,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
 
-    private UserRepository userRepository;
+    private final UserRepository repository;
 
-    UserDetailsServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    UserDetailsServiceImpl(UserRepository repository) {
+        this.repository = repository;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         LOGGER.info("Load user - " + username);
-        return userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("Invalid username"));
+        return repository.findByUsername(username).orElseThrow(() -> new RuntimeException("Invalid username"));
     }
 }

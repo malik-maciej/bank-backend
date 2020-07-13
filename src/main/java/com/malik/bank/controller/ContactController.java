@@ -14,10 +14,10 @@ import javax.validation.Valid;
 @RequestMapping("/api/contact")
 class ContactController {
 
-    private ContactRepository contactRepository;
+    private final ContactRepository repository;
 
-    ContactController(ContactRepository contactRepository) {
-        this.contactRepository = contactRepository;
+    ContactController(ContactRepository repository) {
+        this.repository = repository;
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CUSTOMER_ADVISOR')")
@@ -27,9 +27,9 @@ class ContactController {
             throw new IllegalStateException(UserController.getErrorMessage(result));
         }
 
-        return contactRepository.findById(id)
+        return repository.findById(id)
                 .map(contact -> {
-                    contactRepository.save(contact.updateContact(toUpdate));
+                    repository.save(contact.updateContact(toUpdate));
                     return ResponseEntity.noContent().build();
                 })
                 .orElseThrow(() -> new IllegalArgumentException("Could not find contact - id: " + id));
