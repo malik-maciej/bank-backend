@@ -2,7 +2,9 @@ package com.malik.bank.model;
 
 import javax.persistence.*;
 import javax.validation.Valid;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @Entity
 @Table(name = "contacts")
@@ -12,7 +14,12 @@ public class Contact {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Email
     private String email;
+
+    @NotNull
+    @Size(min = 11, max = 11)
+    private String phoneNumber;
 
     @Valid
     @NotNull
@@ -35,6 +42,14 @@ public class Contact {
         this.email = email;
     }
 
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
     public Address getAddress() {
         return address;
     }
@@ -52,7 +67,8 @@ public class Contact {
     }
 
     public Contact updateContact(Contact contact) {
-        email = contact.email;
+        email = contact.getEmail();
+        phoneNumber = contact.getPhoneNumber();
         address.setCountry(contact.getAddress().getCountry());
         address.setCity(contact.getAddress().getCity());
         address.setPostCode(contact.getAddress().getPostCode());

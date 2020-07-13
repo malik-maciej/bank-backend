@@ -32,6 +32,9 @@ public class Account {
 
     private boolean active;
 
+    @Embedded
+    private Audit audit = new Audit();
+
     public Long getId() {
         return id;
     }

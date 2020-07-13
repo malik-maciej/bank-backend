@@ -35,6 +35,10 @@ public class User implements UserDetails {
     private String surname;
 
     @NotNull
+    @Size(min = 9, max = 9)
+    private String idNumber;
+
+    @NotNull
     @Size(min = 5, max = 16)
     private String role;
 
@@ -45,6 +49,9 @@ public class User implements UserDetails {
     @JsonIgnore
     @OneToMany(mappedBy = "owner")
     private Set<Account> accounts;
+
+    @Embedded
+    private Audit audit = new Audit();
 
     public Long getId() {
         return id;
@@ -82,6 +89,14 @@ public class User implements UserDetails {
 
     public void setSurname(String surname) {
         this.surname = surname;
+    }
+
+    public String getIdNumber() {
+        return idNumber;
+    }
+
+    public void setIdNumber(String idNumber) {
+        this.idNumber = idNumber;
     }
 
     public String getRole() {
