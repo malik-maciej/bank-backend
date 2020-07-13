@@ -12,6 +12,7 @@ class ContactTest {
         Contact contact = new Contact();
         contact.setAddress(new Address());
         contact.setEmail("contact@bank.com");
+        contact.setPhoneNumber("48111222333");
 
         Address address = new Address();
         address.setStreet("Street");
@@ -23,6 +24,7 @@ class ContactTest {
         Contact toUpdate = new Contact();
         toUpdate.setAddress(address);
         toUpdate.setEmail("newcontact@bank.com");
+        toUpdate.setPhoneNumber("48333444555");
 
         // when
         Contact updatedContact = contact.updateContact(toUpdate);
@@ -30,8 +32,11 @@ class ContactTest {
         // then
         assertAll(
                 () -> assertEquals(toUpdate.getEmail(), updatedContact.getEmail()),
+                () -> assertEquals(toUpdate.getPhoneNumber(), updatedContact.getPhoneNumber()),
+                () -> assertTrue(updatedContact.toString().contains("email='newcontact@bank.com'")),
                 () -> assertNotNull(updatedContact.getAddress()),
                 () -> assertEquals(address.getCity(), updatedContact.getAddress().getCity()),
-                () -> assertEquals(address.getCountry(), updatedContact.getAddress().getCountry()));
+                () -> assertEquals(address.getCountry(), updatedContact.getAddress().getCountry()),
+                () -> assertTrue(updatedContact.getAddress().toString().contains("city='City'")));
     }
 }

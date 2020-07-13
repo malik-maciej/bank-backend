@@ -30,6 +30,7 @@ class UserDetailsServiceImplTest {
         newUser.setPassword("password");
         newUser.setName("Name");
         newUser.setSurname("Surname");
+        newUser.setIdNumber("ABC123456");
         newUser.setRole(UserRole.ADMIN.toString());
         newUser.setContact(new Contact());
 
