@@ -17,22 +17,22 @@ public class UserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    UserService(UserRepository repository, PasswordEncoder passwordEncoder) {
-        this.repository = repository;
+    UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void addAdminToDb() {
-        if (repository.findByUsername("admin").isPresent()) {
+        if (userRepository.findByUsername("admin").isPresent()) {
             return;
         }
 
         User user = getUser();
-        repository.save(user);
+        userRepository.save(user);
 
         LOGGER.info("Created user - " + user.getUsername());
     }

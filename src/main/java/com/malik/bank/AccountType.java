@@ -1,5 +1,5 @@
 package com.malik.bank;
 
-enum AccountType {
+public enum AccountType {
     CHECKING, SAVINGS;
 }

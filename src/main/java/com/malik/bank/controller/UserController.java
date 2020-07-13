@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.Optional;
 import java.util.Set;
 
 @RestController
@@ -39,13 +38,14 @@ class UserController {
         return "dashboard";
     }
 
-    @GetMapping()
+    @GetMapping
     ResponseEntity<User> getUser(Principal principal) {
         return userRepository.findByUsername(principal.getName())
                 .map((ResponseEntity::ok))
                 .orElse(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CUSTOMER_ADVISOR')")
     @GetMapping("/{id}")
     ResponseEntity<User> getUser(@PathVariable long id) {
         return userRepository.findById(id)
@@ -53,6 +53,7 @@ class UserController {
                 .orElseThrow(() -> new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id));
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CUSTOMER_ADVISOR')")
     @GetMapping("/{id}/contact")
     ResponseEntity<Contact> getContactByUserId(@PathVariable long id) {
         return userRepository.findById(id)
@@ -60,6 +61,7 @@ class UserController {
                 .orElseThrow(() -> new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id));
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CUSTOMER_ADVISOR')")
     @GetMapping("/{id}/accounts")
     ResponseEntity<Set<Account>> getAccountsByUserId(@PathVariable long id) {
         return userRepository.findById(id)
@@ -67,6 +69,7 @@ class UserController {
                 .orElseThrow(() -> new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id));
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CUSTOMER_ADVISOR')")
     @GetMapping("/{id}/active-accounts")
     ResponseEntity<Set<Account>> getActiveAccountsByUserId(@PathVariable long id) {
         return userRepository.findById(id)
@@ -82,23 +85,21 @@ class UserController {
             throw new IllegalStateException(getErrorMessage(result));
         }
 
-        Optional<User> user = userRepository.findById(id);
-        if (!user.isPresent()) {
-            throw new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id);
-        }
-
-        if (accountRepository.countAccountsByOwnerIdAndActiveIsTrue(user.get().getId()) > 1) {
-            throw new IllegalStateException("This user cannot have more active accounts");
-        }
-
-        account.setNumber(accountService.generateAccountNumber());
-        if (accountRepository.existsByNumber(account.getNumber())) {
+        String accountNumber = accountService.generateAccountNumber();
+        if (accountRepository.existsByNumber(accountNumber)) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Such account number already exists");
         }
 
-        account.setOwner(user.get());
-        return ResponseEntity.status(HttpStatus.CREATED).body(accountRepository.save(account));
+        return userRepository.findById(id)
+                .map(user -> {
+                    if (accountRepository.countAccountsByOwnerIdAndActiveIsTrue(user.getId()) > 1) {
+                        throw new IllegalStateException("This user cannot have more active accounts");
+                    }
+                    return ResponseEntity.status(HttpStatus.CREATED)
+                            .body(accountService.createAccount(account, user, accountNumber));
+                })
+                .orElseThrow(() -> new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id));
     }
 
     static String getErrorMessage(BindingResult result) {

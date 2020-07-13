@@ -1,7 +1,9 @@
 package com.malik.bank.controller;
 
+import com.malik.bank.UserRole;
 import com.malik.bank.model.Account;
 import com.malik.bank.repository.AccountRepository;
+import com.malik.bank.repository.UserRepository;
 import com.malik.bank.service.AccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.Optional;
+import java.security.Principal;
+import java.util.Set;
 
 @RestController
 @IllegalExceptionControllerProcessing
@@ -18,48 +21,60 @@ class AccountController {
 
     private static final String ILLEGAL_ARGUMENT_MESSAGE = "Could not find account - id: ";
 
-    private final AccountRepository repository;
-    private final AccountService service;
+    private final UserRepository userRepository;
+    private final AccountRepository accountRepository;
+    private final AccountService accountService;
 
-    AccountController(AccountRepository repository, AccountService service) {
-        this.repository = repository;
-        this.service = service;
+    AccountController(UserRepository userRepository, AccountRepository accountRepository, AccountService accountService) {
+        this.userRepository = userRepository;
+        this.accountRepository = accountRepository;
+        this.accountService = accountService;
+    }
+
+    @GetMapping("/all")
+    ResponseEntity<Set<Account>> getActiveAccounts(Principal principal) {
+        return userRepository.findByUsername(principal.getName())
+                .map(user -> accountRepository.findAllByOwnerIdAndActiveIsTrue(user.getId()))
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new IllegalStateException("User error"));
     }
 
     @GetMapping("/{id}")
-    ResponseEntity<Account> getAccount(@PathVariable long id) {
-        return repository.findById(id)
-                .map(ResponseEntity::ok)
+    ResponseEntity<?> getAccount(@PathVariable long id, Principal principal) {
+        Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id));
+
+        return userRepository.findByUsername(principal.getName())
+                .map(loggedUser -> {
+                    if (!account.getOwner().equals(loggedUser) && loggedUser.getRole().equals(UserRole.CUSTOMER))
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    return ResponseEntity.ok(account);
+                })
+                .orElseThrow(() -> new IllegalStateException("User error"));
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CUSTOMER_ADVISOR')")
     @PutMapping("/{id}/disable")
     ResponseEntity<?> disableAccount(@PathVariable long id) {
-        Optional<Account> account = repository.findById(id);
-        if (!account.isPresent()) {
-            throw new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id);
-        }
-
-        if (account.get().getBalance().compareTo(BigDecimal.ZERO) > 0) {
-            throw new IllegalStateException("This account cannot be deleted because it still has money");
-        }
-
-        account.get().setActive(false);
-        repository.save(account.get());
-
-        return ResponseEntity.noContent().build();
+        return accountRepository.findById(id)
+                .map(account -> {
+                    if (account.getBalance().compareTo(BigDecimal.ZERO) > 0)
+                        throw new IllegalStateException("This account cannot be deleted because it still has money");
+                    accountService.disableAccount(account);
+                    return ResponseEntity.noContent().build();
+                })
+                .orElseThrow(() -> new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id));
     }
 
     @PatchMapping("/{id}/change-name")
     ResponseEntity<?> changeAccountName(@PathVariable long id, @RequestBody Account toUpdate) {
-        return repository.findById(id)
+        return accountRepository.findById(id)
                 .map(account -> {
                     if (toUpdate.getName().length() < 5 || toUpdate.getName().length() > 30) {
                         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                                 .body("Name size must be between 5 and 30.");
                     }
-                    service.updateAccountName(account, toUpdate.getName());
+                    accountService.updateAccountName(account, toUpdate.getName());
                     return ResponseEntity.noContent().build();
                 })
                 .orElseThrow(() -> new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id));

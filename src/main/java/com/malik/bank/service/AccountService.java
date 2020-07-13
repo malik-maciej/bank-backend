@@ -1,6 +1,7 @@
 package com.malik.bank.service;
 
 import com.malik.bank.model.Account;
+import com.malik.bank.model.User;
 import com.malik.bank.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 
@@ -9,10 +10,10 @@ public class AccountService {
 
     private static final String SPECIAL_BANK_NUMBER = "0210500001";
 
-    private final AccountRepository repository;
+    private final AccountRepository accountRepository;
 
-    AccountService(AccountRepository repository) {
-        this.repository = repository;
+    AccountService(AccountRepository accountRepository) {
+        this.accountRepository = accountRepository;
     }
 
     public String generateAccountNumber() {
@@ -31,6 +32,17 @@ public class AccountService {
 
     public Account updateAccountName(Account account, String newName) {
         account.setName(newName);
-        return repository.save(account);
+        return accountRepository.save(account);
+    }
+
+    public Account disableAccount(Account account) {
+        account.setActive(false);
+        return accountRepository.save(account);
+    }
+
+    public Account createAccount(Account account, User user, String accountNumber) {
+        account.setNumber(accountNumber);
+        account.setOwner(user);
+        return accountRepository.save(account);
     }
 }

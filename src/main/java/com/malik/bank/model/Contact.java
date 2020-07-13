@@ -82,6 +82,7 @@ public class Contact {
         return "Contact{" +
                 "id=" + id +
                 ", email='" + email + "'" +
+                ", phoneNumber='" + phoneNumber + "'" +
                 ", address=" + address +
                 ", user=" + user +
                 "}";
