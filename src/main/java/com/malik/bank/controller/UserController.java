@@ -13,6 +13,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.security.Principal;
 import java.util.Optional;
 import java.util.Set;
 
@@ -23,9 +24,9 @@ class UserController {
 
     private static final String ILLEGAL_ARGUMENT_MESSAGE = "Could not find user - id: ";
 
-    private UserRepository userRepository;
-    private AccountRepository accountRepository;
-    private AccountService accountService;
+    private final UserRepository userRepository;
+    private final AccountRepository accountRepository;
+    private final AccountService accountService;
 
     UserController(UserRepository userRepository, AccountRepository accountRepository, AccountService accountService) {
         this.userRepository = userRepository;
@@ -36,6 +37,13 @@ class UserController {
     @GetMapping("/dashboard")
     String getDashboard() {
         return "dashboard";
+    }
+
+    @GetMapping()
+    ResponseEntity<User> getUser(Principal principal) {
+        return userRepository.findByUsername(principal.getName())
+                .map((ResponseEntity::ok))
+                .orElse(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
     }
 
     @GetMapping("/{id}")
