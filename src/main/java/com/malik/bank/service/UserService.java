@@ -25,6 +25,11 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    public User changePassword(User user, String password) {
+        user.setPassword(passwordEncoder.encode(password));
+        return userRepository.save(user);
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     public void addAdminToDb() {
         if (userRepository.findByUsername("admin").isPresent()) {

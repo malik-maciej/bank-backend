@@ -6,6 +6,7 @@ import com.malik.bank.model.User;
 import com.malik.bank.repository.AccountRepository;
 import com.malik.bank.repository.UserRepository;
 import com.malik.bank.service.AccountService;
+import com.malik.bank.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,11 +25,14 @@ class UserController {
     private static final String ILLEGAL_ARGUMENT_MESSAGE = "Could not find user - id: ";
 
     private final UserRepository userRepository;
+    private final UserService userService;
     private final AccountRepository accountRepository;
     private final AccountService accountService;
 
-    UserController(UserRepository userRepository, AccountRepository accountRepository, AccountService accountService) {
+    UserController(UserRepository userRepository, UserService userService,
+                   AccountRepository accountRepository, AccountService accountService) {
         this.userRepository = userRepository;
+        this.userService = userService;
         this.accountRepository = accountRepository;
         this.accountService = accountService;
     }
@@ -76,6 +80,22 @@ class UserController {
                 .map(user -> accountRepository.findAllByOwnerIdAndActiveIsTrue(user.getId()))
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id));
+    }
+
+    @PatchMapping("/change-password")
+    ResponseEntity<?> changePassword(@RequestParam("password") String toUpdate, Principal principal) {
+        String password = toUpdate.trim();
+        if (password.length() < 8 || password.length() > 20) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Password size must be between 8 and 20");
+        }
+
+        return userRepository.findByUsername(principal.getName())
+                .map(user -> {
+                    userService.changePassword(user, password);
+                    return ResponseEntity.ok().build();
+                })
+                .orElseThrow(() -> new IllegalStateException("User error"));
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CUSTOMER_ADVISOR')")

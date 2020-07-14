@@ -67,14 +67,16 @@ class AccountController {
     }
 
     @PatchMapping("/{id}/change-name")
-    ResponseEntity<?> changeAccountName(@PathVariable long id, @RequestBody Account toUpdate) {
+    ResponseEntity<?> changeAccountName(@PathVariable long id, @RequestParam("name") String toUpdate) {
+        String accountName = toUpdate.trim();
+        if (accountName.length() < 5 || accountName.length() > 30) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Name size must be between 5 and 30.");
+        }
+
         return accountRepository.findById(id)
                 .map(account -> {
-                    if (toUpdate.getName().length() < 5 || toUpdate.getName().length() > 30) {
-                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body("Name size must be between 5 and 30.");
-                    }
-                    accountService.updateAccountName(account, toUpdate.getName());
+                    accountService.updateAccountName(account, accountName);
                     return ResponseEntity.noContent().build();
                 })
                 .orElseThrow(() -> new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id));

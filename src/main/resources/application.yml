@@ -1,8 +1,6 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://127.0.0.1:5432/bank_db
-    username: username
-    password: password
+  profiles:
+    active: prod
   jpa:
     hibernate:
       ddl-auto: update
