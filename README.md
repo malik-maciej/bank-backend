@@ -1,2 +1,2 @@
 # bank-backend
-java | spring (boot, data, security) | rest | aop | postgresql | maven | junit | mockito | swagger | jacoco
+java | spring (boot, data, security) | rest | aop | h2 | maven | junit | mockito | swagger | jacoco
