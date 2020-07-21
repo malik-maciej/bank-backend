@@ -30,10 +30,12 @@ public class User implements UserDetails {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @NotEmpty
+    @NotNull
+    @Size(min = 2, max = 32)
     private String name;
 
-    @NotEmpty
+    @NotNull
+    @Size(min = 2, max = 32)
     private String surname;
 
     @NotNull

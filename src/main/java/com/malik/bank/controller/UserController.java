@@ -82,22 +82,6 @@ class UserController {
                 .orElseThrow(() -> new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id));
     }
 
-    @PatchMapping("/change-password")
-    ResponseEntity<?> changePassword(@RequestParam("password") String toUpdate, Principal principal) {
-        String password = toUpdate.trim();
-        if (password.length() < 8 || password.length() > 20) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Password size must be between 8 and 20");
-        }
-
-        return userRepository.findByUsername(principal.getName())
-                .map(user -> {
-                    userService.changePassword(user, password);
-                    return ResponseEntity.ok().build();
-                })
-                .orElseThrow(() -> new IllegalStateException("User error"));
-    }
-
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CUSTOMER_ADVISOR')")
     @PostMapping("/create")
     ResponseEntity<?> createUser(@RequestBody @Valid User user, BindingResult result) {
@@ -123,6 +107,23 @@ class UserController {
                             .body(accountService.createAccount(account, user));
                 })
                 .orElseThrow(() -> new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id));
+    }
+
+
+    @PatchMapping("/change-password")
+    ResponseEntity<?> changePassword(@RequestParam("password") String toUpdate, Principal principal) {
+        String password = toUpdate.trim();
+        if (password.length() < 8 || password.length() > 20) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Password size must be between 8 and 20");
+        }
+
+        return userRepository.findByUsername(principal.getName())
+                .map(user -> {
+                    userService.changePassword(user, password);
+                    return ResponseEntity.ok().build();
+                })
+                .orElseThrow(() -> new IllegalStateException("User error"));
     }
 
     static String getErrorMessage(BindingResult result) {
