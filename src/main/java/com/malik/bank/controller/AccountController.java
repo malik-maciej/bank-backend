@@ -31,14 +31,6 @@ class AccountController {
         this.accountService = accountService;
     }
 
-    @GetMapping("/all")
-    ResponseEntity<Set<Account>> getActiveAccounts(Principal principal) {
-        return userRepository.findByUsername(principal.getName())
-                .map(user -> accountRepository.findAllByOwnerIdAndActiveIsTrue(user.getId()))
-                .map(ResponseEntity::ok)
-                .orElseThrow(() -> new IllegalStateException("User error"));
-    }
-
     @GetMapping("/{id}")
     ResponseEntity<?> getAccount(@PathVariable long id, Principal principal) {
         Account account = accountRepository.findById(id)
@@ -50,6 +42,14 @@ class AccountController {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
                     return ResponseEntity.ok(account);
                 })
+                .orElseThrow(() -> new IllegalStateException("User error"));
+    }
+
+    @GetMapping("/all")
+    ResponseEntity<Set<Account>> getActiveAccounts(Principal principal) {
+        return userRepository.findByUsername(principal.getName())
+                .map(user -> accountRepository.findAllByOwnerIdAndActiveIsTrue(user.getId()))
+                .map(ResponseEntity::ok)
                 .orElseThrow(() -> new IllegalStateException("User error"));
     }
 

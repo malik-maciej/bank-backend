@@ -1,5 +1,7 @@
 package com.malik.bank.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
@@ -12,6 +14,7 @@ public class Contact {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
     @Email
@@ -58,7 +61,7 @@ public class Contact {
         this.address = address;
     }
 
-    User getUser() {
+    public User getUser() {
         return user;
     }
 

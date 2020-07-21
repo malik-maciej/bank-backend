@@ -30,6 +30,30 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public User addUser(User user) {
+        user.setUsername(generateUsername());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.getContact().setUser(user);
+        return userRepository.save(user);
+    }
+
+    private String generateUsername() {
+        String letters = "abcdefghijklmnopqrstvxyz";
+        StringBuilder builder = new StringBuilder();
+
+        int count = 12;
+        while (count-- != 0) {
+            int character = (int) (Math.random() * letters.length());
+            builder.append(letters.charAt(character));
+        }
+
+        if (userRepository.findByUsername(builder.toString()).isPresent()) {
+            throw new RuntimeException("Generated username exists");
+        }
+
+        return builder.toString();
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     public void addAdminToDb() {
         if (userRepository.findByUsername("admin").isPresent()) {

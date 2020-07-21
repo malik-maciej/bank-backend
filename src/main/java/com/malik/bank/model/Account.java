@@ -1,5 +1,7 @@
 package com.malik.bank.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -11,6 +13,7 @@ public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
     @NotNull
@@ -18,6 +21,7 @@ public class Account {
     private String name;
 
     @Size(min = 26, max = 26)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String number;
 
     @ManyToOne

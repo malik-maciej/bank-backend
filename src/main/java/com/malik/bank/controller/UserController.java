@@ -99,25 +99,28 @@ class UserController {
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CUSTOMER_ADVISOR')")
+    @PostMapping("/create")
+    ResponseEntity<?> createUser(@RequestBody @Valid User user, BindingResult result) {
+        if (result.hasErrors()) {
+            throw new IllegalStateException(getErrorMessage(result));
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.addUser(user));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CUSTOMER_ADVISOR')")
     @PostMapping("/{id}/create-account")
     ResponseEntity<?> createAccount(@PathVariable long id, @RequestBody @Valid Account account, BindingResult result) {
         if (result.hasErrors()) {
             throw new IllegalStateException(getErrorMessage(result));
         }
 
-        String accountNumber = accountService.generateAccountNumber();
-        if (accountRepository.existsByNumber(accountNumber)) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Such account number already exists");
-        }
-
         return userRepository.findById(id)
                 .map(user -> {
-                    if (accountRepository.countAccountsByOwnerIdAndActiveIsTrue(user.getId()) > 1) {
+                    if (accountRepository.countAccountsByOwnerIdAndActiveIsTrue(user.getId()) > 1)
                         throw new IllegalStateException("This user cannot have more active accounts");
-                    }
                     return ResponseEntity.status(HttpStatus.CREATED)
-                            .body(accountService.createAccount(account, user, accountNumber));
+                            .body(accountService.createAccount(account, user));
                 })
                 .orElseThrow(() -> new IllegalArgumentException(ILLEGAL_ARGUMENT_MESSAGE + id));
     }

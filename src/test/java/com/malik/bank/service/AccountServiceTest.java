@@ -8,8 +8,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
@@ -31,17 +34,7 @@ class AccountServiceTest {
     }
 
     @Test
-    void shouldGetGeneratedAccountNumber() {
-        // when
-        String accountNumber = accountService.generateAccountNumber();
-
-        // then
-        assertEquals(accountNumber.length(), 26);
-        assertEquals(accountNumber.substring(0, 10), SPECIAL_BANK_NUMBER);
-    }
-
-    @Test
-    void shouldGetUpdateAccountName() {
+    void shouldUpdateAccountName() {
         // when
         accountService.updateAccountName(account, "My account");
 
@@ -63,17 +56,41 @@ class AccountServiceTest {
     @Test
     void shouldCreateAccount() {
         // when
-        accountService.createAccount(account, new User(), "02105000011845130074030191");
+        accountService.createAccount(account, new User());
 
         // then
+        then(accountRepository).should().findByNumber(anyString());
         then(accountRepository).should().save(account);
         assertAll(
                 () -> assertNotNull(account.getOwner()),
-                () -> assertEquals(account.getNumber(), "02105000011845130074030191"),
+                () -> assertNotNull(account.getNumber()),
                 () -> assertEquals(account.getName(), "Normal account"),
                 () -> assertEquals(account.getType(), AccountType.CHECKING.toString()),
-                () -> assertTrue(account.isActive()),
-                () -> assertEquals(account.getBalance(), BigDecimal.ZERO)
+                () -> assertEquals(account.getBalance(), BigDecimal.ZERO),
+                () -> assertTrue(account.isActive())
         );
+    }
+
+    @Test
+    void shouldGenerateProperlyAccountNumber() {
+        // when
+        accountService.createAccount(account, new User());
+
+        // then
+        assertEquals(account.getNumber().length(), 26);
+        assertEquals(account.getNumber().substring(0, 10), SPECIAL_BANK_NUMBER);
+    }
+
+    @Test
+    void shouldThrowRuntimeExceptionWhenUsernameExists() {
+        // given
+        given(accountRepository.findByNumber(anyString())).willReturn(Optional.of(new Account()));
+
+        // when + then
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> accountService.createAccount(account, new User()));
+
+        assertEquals("Generated account number exists", exception.getMessage());
     }
 }
