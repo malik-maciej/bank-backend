@@ -31,6 +31,10 @@ public class UserService {
     }
 
     public User addUser(User user) {
+        if (userRepository.findByIdNumber(user.getIdNumber()).isPresent()) {
+            throw new IllegalStateException("User with given ID number exists");
+        }
+
         user.setUsername(generateUsername());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.getContact().setUser(user);
@@ -38,13 +42,13 @@ public class UserService {
     }
 
     private String generateUsername() {
-        String letters = "abcdefghijklmnopqrstvxyz";
+        String characters = "abcdefghijklmnopqrstvxyz0123456789";
         StringBuilder builder = new StringBuilder();
 
         int count = 12;
         while (count-- != 0) {
-            int character = (int) (Math.random() * letters.length());
-            builder.append(letters.charAt(character));
+            int character = (int) (Math.random() * characters.length());
+            builder.append(characters.charAt(character));
         }
 
         if (userRepository.findByUsername(builder.toString()).isPresent()) {

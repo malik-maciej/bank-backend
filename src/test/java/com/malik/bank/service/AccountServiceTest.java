@@ -82,9 +82,9 @@ class AccountServiceTest {
     }
 
     @Test
-    void shouldThrowRuntimeExceptionWhenUsernameExists() {
+    void shouldThrowRuntimeExceptionWhenAccountNumberExists() {
         // given
-        given(accountRepository.findByNumber(anyString())).willReturn(Optional.of(new Account()));
+        given(accountRepository.findByNumber(anyString())).willReturn(Optional.of(account));
 
         // when + then
         RuntimeException exception = assertThrows(

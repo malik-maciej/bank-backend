@@ -123,7 +123,7 @@ class UserController {
                     userService.changePassword(user, password);
                     return ResponseEntity.ok().build();
                 })
-                .orElseThrow(() -> new IllegalStateException("User error"));
+                .orElse(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
     }
 
     static String getErrorMessage(BindingResult result) {

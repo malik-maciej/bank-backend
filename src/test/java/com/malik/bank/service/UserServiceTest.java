@@ -31,6 +31,7 @@ class UserServiceTest {
         user = new User();
         user.setName("David");
         user.setSurname("Smith");
+        user.setIdNumber("ABC123456");
     }
 
     @Test
@@ -39,6 +40,7 @@ class UserServiceTest {
         userService.addAdminToDb();
 
         // then
+        then(userRepository).should().findByUsername(anyString());
         then(userRepository).should().save(any(User.class));
     }
 
@@ -69,6 +71,7 @@ class UserServiceTest {
         userService.addUser(user);
 
         // then
+        then(userRepository).should().findByIdNumber(anyString());
         then(userRepository).should().findByUsername(anyString());
         then(userRepository).should().save(user);
         assertAll(
@@ -80,9 +83,22 @@ class UserServiceTest {
     }
 
     @Test
+    void shouldThrowExceptionWhenIdNumberExists() {
+        // given
+        given(userRepository.findByIdNumber(anyString())).willReturn(Optional.of(user));
+
+        // when + then
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> userService.addUser(user));
+
+        assertEquals("User with given ID number exists", exception.getMessage());
+    }
+
+    @Test
     void shouldThrowRuntimeExceptionWhenUsernameExists() {
         // given
-        given(userRepository.findByUsername(anyString())).willReturn(Optional.of(new User()));
+        given(userRepository.findByUsername(anyString())).willReturn(Optional.of(user));
 
         // when + then
         RuntimeException exception = assertThrows(

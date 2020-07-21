@@ -3,6 +3,7 @@ package com.malik.bank.controller;
 import com.malik.bank.model.Contact;
 import com.malik.bank.repository.ContactRepository;
 import com.malik.bank.repository.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
@@ -28,7 +29,7 @@ class ContactController {
     ResponseEntity<Contact> getContact(Principal principal) {
         return userRepository.findByUsername(principal.getName())
                 .map(user -> ResponseEntity.ok(user.getContact()))
-                .orElseThrow(() -> new IllegalStateException("User error"));
+                .orElse(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CUSTOMER_ADVISOR')")
